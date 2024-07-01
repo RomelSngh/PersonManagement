@@ -6,6 +6,7 @@
 -- Gointo Package manager console and run the following commands against [PersonAccountTransactions] : 
    
 DOTNET EF Database Update --context "SecurityContext"
+
 DOTNET EF Database Update --context "PersonAccountTransactionDataContext"
 
 -- Build Web Project and Run 
