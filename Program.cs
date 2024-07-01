@@ -34,7 +34,7 @@ builder.Services.AddDbContext<PersonAccountTransactionDataContext>(o =>
 o.UseSqlServer(builder.Configuration.GetConnectionString("apicon")));
 builder.Services.AddDbContext<SecurityContext>(o =>
 o.UseSqlServer(builder.Configuration.GetConnectionString("apicon")));
-
+builder.Services.AddTransient<EncryptionService>();
 //builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
 var _authkey = builder.Configuration.GetValue<string>("JwtSettings:securitykey");

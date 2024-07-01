@@ -35,6 +35,11 @@ public partial class User
     [Unicode(false)]
     public string? Password { get; set; }
 
+    [Column("passwordsalt")]
+    [StringLength(50)]
+    [Unicode(false)]
+    public string? PasswordSalt { get; set; }
+
     [Column("isactive")]
     public bool? Isactive { get; set; }
 

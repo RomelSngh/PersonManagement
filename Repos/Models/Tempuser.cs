@@ -37,4 +37,10 @@ public partial class Tempuser
     [StringLength(50)]
     [Unicode(false)]
     public string? Password { get; set; }
+
+    [Column("passwordsalt")]
+    [StringLength(50)]
+    [Unicode(false)]
+    public string? PasswordSalt { get; set; }
+
 }

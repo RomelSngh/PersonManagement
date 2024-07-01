@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PersonManagement.Container;
 
 namespace PersonManagement.Controllers
 {
@@ -17,10 +18,12 @@ namespace PersonManagement.Controllers
     public class AuthorizeController : ControllerBase
     {
         private readonly SecurityContext context;
+        private readonly EncryptionService encryptionService;   
         private readonly JwtSettings jwtSettings;
         private readonly IRefreshHandler refresh;
-        public AuthorizeController(SecurityContext context,IOptions<JwtSettings> options,IRefreshHandler refresh)
+        public AuthorizeController(SecurityContext context,IOptions<JwtSettings> options,IRefreshHandler refresh, EncryptionService encryptionService)
         {
+            this.encryptionService = encryptionService;
             this.context = context;
             this.jwtSettings = options.Value;
             this.refresh = refresh;
@@ -28,8 +31,18 @@ namespace PersonManagement.Controllers
         [HttpPost("GenerateToken")]
         public async Task<IActionResult> GenerateToken([FromBody] UserCred userCred)
         {
-            var user = await this.context.Users.FirstOrDefaultAsync(item => item.Username == userCred.username && item.Password == userCred.password && item.Isactive==true);
+            bool isValidated = false;
+            //first find the user 
+            var user = await this.context.Users.FirstOrDefaultAsync(item => item.Username == userCred.username && (item.Isactive == true));
+            //get the user's salt
+            var salt = "";
             if (user != null)
+            {
+                salt = user.PasswordSalt;
+               isValidated = encryptionService.VerifyPassword(userCred.password,user.Password, salt);
+            }
+
+            if (isValidated)
             {
                 //generate token
                 var tokenhandler = new JwtSecurityTokenHandler();
@@ -123,6 +136,11 @@ namespace PersonManagement.Controllers
                 return Unauthorized();
             }
 
+
+
+
         }
+
+
     }
 }

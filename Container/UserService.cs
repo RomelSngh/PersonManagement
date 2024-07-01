@@ -12,13 +12,15 @@ namespace PersonManagement.Container
     public class UserService : IUserService
     {
         private readonly SecurityContext context;
+        private readonly EncryptionService encryptionService;
         private readonly IMapper mapper;
         private readonly IEmailService emailService;
-        public UserService(SecurityContext learndata, IMapper mapper, IEmailService emailService)
+        public UserService(SecurityContext learndata, IMapper mapper, IEmailService emailService, EncryptionService encryptionService)
         {
             this.context = learndata;
             this.mapper = mapper;
             this.emailService = emailService;
+            this.encryptionService = encryptionService;
         }
         public async Task<APIResponse> ConfirmRegister(int userid, string username, string otptext)
         {
@@ -56,6 +58,9 @@ namespace PersonManagement.Container
 
        public async Task<APIResponse> UserRegisteration(UserRegister userRegister)
         {
+            var newsalt = encryptionService.GenerateSalt();
+            var encryptedWithSaltPassword = encryptionService.HashPasswordWithSalt(userRegister.Password,newsalt); 
+
             APIResponse response=new APIResponse();
             int userid = 0;
             bool isvalid = true;
@@ -88,20 +93,22 @@ namespace PersonManagement.Container
                         Code = userRegister.UserName,
                         Name = userRegister.Name,
                         Email = userRegister.Email,
-                        Password= userRegister.Password,
+                        Password= encryptedWithSaltPassword,
                         Phone = userRegister.Phone,
+                        PasswordSalt = newsalt
                     };
-                    //await this.context.Tempusers.AddAsync(_tempuser);
+                    await this.context.Tempusers.AddAsync(_tempuser);
                     await this.context.Users.AddAsync(new User() { 
                         Username = userRegister.UserName,
                         Email = userRegister.Email,
-                        Password = userRegister.Password,
+                        Password = encryptedWithSaltPassword,
                         Phone = userRegister.Phone,
                         Isactive = true,
                         Islocked = false,
                         Name = userRegister.Name,
                         Failattempt = 0,
-                        Role = "admin"
+                        Role = "admin",
+                        PasswordSalt = newsalt
                     });
                     await this.context.SaveChangesAsync();
                     //userid = _tempuser.Id;
